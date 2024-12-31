@@ -78,14 +78,10 @@ module.exports = (db, bucket) => {
     }
   });
 
-  // Get all artists with pagination
+  // Get all artists
   router.get('/', async (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = (page - 1) * limit;
-
     try {
-      const artistsSnapshot = await db.collection('artists').offset(offset).limit(limit).get();
+      const artistsSnapshot = await db.collection('artists').get();
       const artists = artistsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       res.send(artists);
     } catch (err) {
