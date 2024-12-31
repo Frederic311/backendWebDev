@@ -162,14 +162,16 @@ module.exports = (db, bucket) => {
 
       const artist = artistDoc.data();
       const imageUrl = artist.artistImage;
-      const imageName = imageUrl.split('/').pop(); // Extract the image name from the URL
+      const imageName = imageUrl ? imageUrl.split('/').pop() : null; // Extract the image name from the URL
 
       // Delete the artist document from Firestore
       await db.collection('artists').doc(req.params.id).delete();
 
-      // Delete the corresponding image from Firebase Storage
-      const blob = bucket.file(imageName);
-      await blob.delete();
+      // Delete the corresponding image from Firebase Storage if it exists
+      if (imageName) {
+        const blob = bucket.file(imageName);
+        await blob.delete();
+      }
 
       res.send('Artist and image deleted successfully!');
     } catch (err) {
