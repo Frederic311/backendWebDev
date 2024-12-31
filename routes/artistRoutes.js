@@ -145,8 +145,23 @@ module.exports = (db, bucket) => {
   // Delete an artist
   router.delete('/:id', async (req, res) => {
     try {
+      const artistDoc = await db.collection('artists').doc(req.params.id).get();
+      if (!artistDoc.exists) {
+        return res.status(404).send('Artist not found');
+      }
+
+      const artist = artistDoc.data();
+      const imageUrl = artist.artistImage;
+      const imageName = imageUrl.split('/').pop(); // Extract the image name from the URL
+
+      // Delete the artist document from Firestore
       await db.collection('artists').doc(req.params.id).delete();
-      res.send('Artist deleted successfully!');
+
+      // Delete the corresponding image from Firebase Storage
+      const blob = bucket.file(imageName);
+      await blob.delete();
+
+      res.send('Artist and image deleted successfully!');
     } catch (err) {
       res.status(500).send({ message: err.message });
     }
