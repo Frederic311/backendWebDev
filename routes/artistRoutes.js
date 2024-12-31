@@ -20,7 +20,7 @@ module.exports = (db, bucket) => {
   // Create an artist
   router.post('/', upload.single('artistImage'), async (req, res) => {
     try {
-      const { artistName, numberOfAlbums, careerStartDate } = req.body;
+      const { artistName, numberOfAlbums, careerStartDate, socialMediaLinks } = req.body;
 
       // Validation: Unique artist name
       const isUnique = await isArtistNameUnique(artistName);
@@ -40,7 +40,10 @@ module.exports = (db, bucket) => {
         return res.status(400).send({ message: 'Career start date cannot be in the future.' });
       }
 
-      const artist = req.body;
+      const artist = {
+        ...req.body,
+        socialMediaLinks: socialMediaLinks.split(',').map(link => link.trim()) // Convert to array
+      };
 
       if (req.file) {
         const blob = bucket.file(Date.now() + path.extname(req.file.originalname));
@@ -106,7 +109,7 @@ module.exports = (db, bucket) => {
   // Update an artist
   router.put('/:id', async (req, res) => {
     try {
-      const { artistName, numberOfAlbums, careerStartDate } = req.body;
+      const { artistName, numberOfAlbums, careerStartDate, socialMediaLinks } = req.body;
       const artistId = req.params.id;
 
       // Validation: Unique artist name
@@ -132,7 +135,10 @@ module.exports = (db, bucket) => {
         return res.status(400).send({ message: 'Career start date cannot be in the future.' });
       }
 
-      const artist = req.body;
+      const artist = {
+        ...req.body,
+        socialMediaLinks: socialMediaLinks.split(',').map(link => link.trim()) // Convert to array
+      };
       await db.collection('artists').doc(artistId).update(artist);
       res.send('Artist updated successfully!');
     } catch (err) {
