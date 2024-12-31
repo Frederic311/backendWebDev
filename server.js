@@ -15,10 +15,11 @@ admin.initializeApp({
     privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL
   }),
-  databaseURL: "https://webdev222-9b8d1.firebaseio.com"
+  storageBucket: "gs://webdev222-9b8d1.firebasestorage.app"
 });
 
 const db = admin.firestore();
+const bucket = admin.storage().bucket();
 
 // Middleware
 app.use(cors());
@@ -30,8 +31,8 @@ app.get('/', (req, res) => {
 });
 
 // Import routes
-const artistRoutes = require('./routes/artistRoutes');
-app.use('/api/artists', artistRoutes(db));
+const artistRoutes = require('./routes/artistRoutes')(db, bucket); // Pass db and bucket to the route
+app.use('/api/artists', artistRoutes);
 
 // Start the server
 app.listen(port, () => {
