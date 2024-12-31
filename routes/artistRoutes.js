@@ -41,8 +41,13 @@ module.exports = (db, bucket) => {
       }
 
       const artist = {
-        ...req.body,
-        socialMediaLinks: socialMediaLinks.split(',').map(link => link.trim()) // Convert to array
+        artistName: artistName || '',
+        numberOfAlbums: numberOfAlbums || 0,
+        careerStartDate: careerStartDate || '',
+        socialMediaLinks: socialMediaLinks ? socialMediaLinks.split(',').map(link => link.trim()) : [], // Convert to array
+        recordLabel: req.body.recordLabel || '',
+        publishingHouse: req.body.publishingHouse || '',
+        artistImage: ''
       };
 
       if (req.file) {
@@ -132,9 +137,14 @@ module.exports = (db, bucket) => {
       }
 
       const artist = {
-        ...req.body,
-        socialMediaLinks: socialMediaLinks.split(',').map(link => link.trim()) // Convert to array
+        artistName: artistName || '',
+        numberOfAlbums: numberOfAlbums || 0,
+        careerStartDate: careerStartDate || '',
+        socialMediaLinks: socialMediaLinks ? socialMediaLinks.split(',').map(link => link.trim()) : [], // Convert to array
+        recordLabel: req.body.recordLabel || '',
+        publishingHouse: req.body.publishingHouse || ''
       };
+
       await db.collection('artists').doc(artistId).update(artist);
       res.send('Artist updated successfully!');
     } catch (err) {
