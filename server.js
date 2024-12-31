@@ -1,14 +1,21 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const cors = require('cors');
+const dotenv = require('dotenv');
+
+dotenv.config(); // Load environment variables
+
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Firebase Admin SDK configuration
-const serviceAccount = require('./practical3webdev-firebase-adminsdk-h2luo-c9a6cde481.json'); // Update this path to the location of your JSON file
+// Firebase Admin SDK configuration using environment variables
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://console.firebase.google.com/u/0/project/practical3webdev/firestore/databases/-default-/data"
+  credential: admin.credential.cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL
+  }),
+  databaseURL: "https://webdev222-9b8d1.firebaseio.com"
 });
 
 const db = admin.firestore();

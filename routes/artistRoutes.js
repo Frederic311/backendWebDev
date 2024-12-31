@@ -6,8 +6,8 @@ module.exports = (db) => {
   router.post('/', async (req, res) => {
     try {
       const artist = req.body;
-      await db.collection('artists').add(artist);
-      res.status(201).send('Artist created successfully!');
+      const artistRef = await db.collection('artists').add(artist);
+      res.status(201).send({ id: artistRef.id, ...artist });
     } catch (err) {
       res.status(400).send(err.message);
     }
