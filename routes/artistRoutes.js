@@ -60,7 +60,8 @@ module.exports = (db, bucket) => {
         socialMediaLinks: socialMediaLinks ? socialMediaLinks.split(',').map(link => link.trim()) : [], // Convert to array
         recordLabel: req.body.recordLabel || '',
         publishingHouse: req.body.publishingHouse || '',
-        artistImage: ''
+        artistImage: '',
+        rating: null // Initialize rating as null
       };
 
       if (req.file) {
@@ -163,7 +164,8 @@ module.exports = (db, bucket) => {
         careerStartDate: careerStartDate || '',
         socialMediaLinks: socialMediaLinks ? socialMediaLinks.split(',').map(link => link.trim()) : [], // Convert to array
         recordLabel: req.body.recordLabel || '',
-        publishingHouse: req.body.publishingHouse || ''
+        publishingHouse: req.body.publishingHouse || '',
+        rating: existingArtist.rating // Preserve existing rating
       };
 
       // Check if a new image is being uploaded
