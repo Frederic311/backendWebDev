@@ -174,8 +174,8 @@ module.exports = (db, bucket) => {
                 socialMediaLinks: socialMediaLinks ? socialMediaLinks.split(',').map(link => link.trim()) : [],
                 recordLabel: recordLabel || '',
                 publishingHouse: publishingHouse || '',
-                rating: existingArtist.rating,
-            };
+                rating: rating !== undefined ? rating : (existingArtist.rating !== undefined ? existingArtist.rating : 0),
+              };
 
             if (req.file) {
                 const blob = bucket.file(Date.now() + path.extname(req.file.originalname));
