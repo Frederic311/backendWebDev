@@ -84,8 +84,8 @@ module.exports = (db, bucket) => {
                 });
 
                 blobStream.on('finish', async () => {
-                    const publicUrl = `https://storage.googleapis.com/<span class="math-inline">\{bucket\.name\}/</span>{blob.name}`;
-                    artist.artistImage = publicUrl;
+                  const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+                  artist.artistImage = publicUrl;
 
                     const artistRef = await db.collection('artists').add(artist);
                     res.status(201).send({ id: artistRef.id, ...artist });
@@ -190,7 +190,7 @@ module.exports = (db, bucket) => {
                 });
 
                 blobStream.on('finish', async () => {
-                    const publicUrl = `https://storage.googleapis.com/<span class="math-inline">\{bucket\.name\}/</span>{blob.name}`;
+                  const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
                     artist.artistImage = publicUrl;
 
                     await db.collection('artists').doc(artistId).update(artist);
