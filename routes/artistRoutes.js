@@ -128,86 +128,86 @@ module.exports = (db, bucket) => {
 
     // Update an artist
     router.put('/:id', upload.single('artistImage'), async (req, res) => {
-        try {
-            const { artistName, stageName, numberOfAlbums, careerStartDate, socialMediaLinks, recordLabel, publishingHouse } = req.body;
-            const artistId = req.params.id;
+      try {
+          const { artistName, stageName, numberOfAlbums, careerStartDate, socialMediaLinks, recordLabel, publishingHouse, rating } = req.body;
+          const artistId = req.params.id;
 
-            const artistDoc = await db.collection('artists').doc(artistId).get();
-            if (!artistDoc.exists) {
-                return res.status(404).send({ message: 'Artist not found' });
-            }
-            const existingArtist = artistDoc.data();
+          const artistDoc = await db.collection('artists').doc(artistId).get();
+          if (!artistDoc.exists) {
+              return res.status(404).send({ message: 'Artist not found' });
+          }
+          const existingArtist = artistDoc.data();
 
-            if (!artistName) {
-                return res.status(400).send({ artistName: 'Artist name is required' });
-            }
-            if (!careerStartDate) {
-                return res.status(400).send({ careerStartDate: 'Career start date is required' });
-            }
+          if (!artistName) {
+              return res.status(400).send({ artistName: 'Artist name is required' });
+          }
+          if (!careerStartDate) {
+              return res.status(400).send({ careerStartDate: 'Career start date is required' });
+          }
 
-            const isArtistNameUniqueCheck = artistName !== existingArtist.artistName ? await isArtistNameUnique(artistName) : true;
-            const isStageNameUniqueCheck = stageName !== existingArtist.stageName ? await isStageNameUnique(stageName) : true;
+          const isArtistNameUniqueCheck = artistName !== existingArtist.artistName ? await isArtistNameUnique(artistName) : true;
+          const isStageNameUniqueCheck = stageName !== existingArtist.stageName ? await isStageNameUnique(stageName) : true;
 
-            if (!isArtistNameUniqueCheck) {
-                return res.status(400).send({ artistName: 'Artist name already exists.' });
-            }
+          if (!isArtistNameUniqueCheck) {
+              return res.status(400).send({ artistName: 'Artist name already exists.' });
+          }
 
-            if (stageName && !isStageNameUniqueCheck) {
-                return res.status(400).send({ stageName: 'Stage name already exists.' });
-            }
+          if (stageName && !isStageNameUniqueCheck) {
+              return res.status(400).send({ stageName: 'Stage name already exists.' });
+          }
 
-            if (numberOfAlbums && numberOfAlbums <= 0) {
-                return res.status(400).send({ numberOfAlbums: 'Number of albums must be a positive number.' });
-            }
+          if (numberOfAlbums && numberOfAlbums <= 0) {
+              return res.status(400).send({ numberOfAlbums: 'Number of albums must be a positive number.' });
+          }
 
-            const careerStart = new Date(careerStartDate);
-            const today = new Date();
-            if (careerStart > today) {
-                return res.status(400).send({ careerStartDate: 'Career start date cannot be in the future.' });
-            }
+          const careerStart = new Date(careerStartDate);
+          const today = new Date();
+          if (careerStart > today) {
+              return res.status(400).send({ careerStartDate: 'Career start date cannot be in the future.' });
+          }
 
-            const artist = {
-                artistName: artistName,
-                stageName: stageName || '',
-                numberOfAlbums: numberOfAlbums ? parseInt(numberOfAlbums) : 0,
-                careerStartDate: careerStartDate,
-                socialMediaLinks: socialMediaLinks ? socialMediaLinks.split(',').map(link => link.trim()) : [],
-                recordLabel: recordLabel || '',
-                publishingHouse: publishingHouse || '',
-                rating: rating !== undefined ? rating : (existingArtist.rating !== undefined ? existingArtist.rating : 0),
-              };
+          const artist = {
+              artistName: artistName,
+              stageName: stageName || '',
+              numberOfAlbums: numberOfAlbums ? parseInt(numberOfAlbums) : 0,
+              careerStartDate: careerStartDate,
+              socialMediaLinks: socialMediaLinks ? socialMediaLinks.split(',').map(link => link.trim()) : [],
+              recordLabel: recordLabel || '',
+              publishingHouse: publishingHouse || '',
+              rating: rating !== undefined ? rating : (existingArtist.rating !== undefined ? existingArtist.rating : 0),
+          };
 
-            if (req.file) {
-                const blob = bucket.file(Date.now() + path.extname(req.file.originalname));
-                const blobStream = blob.createWriteStream({
-                    metadata: {
-                        contentType: req.file.mimetype,
-                    },
-                });
+          if (req.file) {
+              const blob = bucket.file(Date.now() + path.extname(req.file.originalname));
+              const blobStream = blob.createWriteStream({
+                  metadata: {
+                      contentType: req.file.mimetype,
+                  },
+              });
 
-                blobStream.on('error', (err) => {
-                    res.status(500).send({ message: err.message });
-                });
+              blobStream.on('error', (err) => {
+                  res.status(500).send({ message: err.message });
+              });
 
-                blobStream.on('finish', async () => {
+              blobStream.on('finish', async () => {
                   const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-                    artist.artistImage = publicUrl;
+                  artist.artistImage = publicUrl;
 
-                    await db.collection('artists').doc(artistId).update(artist);
-                    res.send('Artist updated successfully!');
-                });
-
-                blobStream.end(req.file.buffer);
-
-              } else {
                   await db.collection('artists').doc(artistId).update(artist);
                   res.send('Artist updated successfully!');
-              }
-          } catch (err) {
-              console.error("Error updating artist:", err);
-              res.status(500).send({ message: 'Failed to update artist.' });
+              });
+
+              blobStream.end(req.file.buffer);
+
+          } else {
+              await db.collection('artists').doc(artistId).update(artist);
+              res.send('Artist updated successfully!');
           }
-      });
+      } catch (err) {
+          console.error("Error updating artist:", err);
+          res.status(500).send({ message: 'Failed to update artist.' });
+      }
+  });
 
       // Delete an artist
       router.delete('/:id', async (req, res) => {
