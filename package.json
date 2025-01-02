@@ -2,15 +2,16 @@
     "name": "backendWebDev",
     "version": "1.0.0",
     "scripts": {
-      "start": "node server.js"
+        "start": "node server.js"
     },
     "dependencies": {
-      "cors": "^2.8.5",
-      "dotenv": "^10.0.0",
-      "express": "^4.17.1",
-      "express-session": "^1.18.1",
-      "firebase-admin": "^9.9.0",
-      "googleapis": "^144.0.0",
-      "multer": "^1.4.4"
+        "backendWebDev": "file:",
+        "cors": "^2.8.5",
+        "dotenv": "^10.0.0",
+        "express": "^4.17.1",
+        "express-session": "^1.18.1",
+        "firebase-admin": "^9.9.0",
+        "googleapis": "^144.0.0",
+        "multer": "^1.4.4"
     }
-  }
+}

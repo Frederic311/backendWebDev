@@ -34,7 +34,12 @@ app.get('/', (req, res) => {
 const artistRoutes = require('./routes/artistRoutes')(db, bucket); // Pass db and bucket to the route
 app.use('/api/artists', artistRoutes);
 
+const userRoutes = require('./routes/userRoutes')(db); // Pass db to the route
+app.use('/api/users', userRoutes);
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
+
+
