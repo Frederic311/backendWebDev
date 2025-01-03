@@ -164,6 +164,8 @@ module.exports = (db) => {
 
     return router;
 };
+
+module.exports = (db) => {
 const recalculateAverageRatingsForAllArtists = async (db) => {
     try {
         const artistsSnapshot = await db.collection('artists').get();
@@ -188,11 +190,11 @@ const recalculateAverageRatingsForAllArtists = async (db) => {
         console.error("Error recalculating average ratings:", error);
     }
 };
-
+};
 // Call this function once to update all artist ratings
 recalculateAverageRatingsForAllArtists(db);
 
-
+module.exports = (db) => {
 const recalculateAverageRatingForArtist = async (db, artistId) => {
     try {
         const artistRatingsSnapshot = await db.collection('ratings').where('artist_id', '==', artistId).get();
@@ -217,5 +219,5 @@ const recalculateAverageRatingForArtist = async (db, artistId) => {
         console.error("Error recalculating average rating for artist:", error);
     }
 };
-
+};
 
