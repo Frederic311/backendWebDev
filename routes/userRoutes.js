@@ -76,19 +76,22 @@ module.exports = (db) => {
                 return res.status(400).send({ message: 'User ID is required' });
             }
 
+            console.log(`Fetching user with ID: ${userId}`);
             const userDoc = await db.collection('users').doc(userId).get();
             if (!userDoc.exists) {
+                console.log(`User with ID: ${userId} not found`);
                 return res.status(404).send({ message: 'User not found' });
             }
 
             let follow_artist = userDoc.data().follow_artist || [];
-            if (follow_artist.includes(parseInt(artistId))) {
+            if (follow_artist.includes(artistId)) {
                 return res.status(400).send({ message: 'Artist already followed' });
             }
 
-            follow_artist.push(parseInt(artistId));
+            follow_artist.push(artistId);
             await db.collection('users').doc(userId).update({ follow_artist });
 
+            console.log(`Artist with ID: ${artistId} followed successfully by user with ID: ${userId}`);
             res.send({ message: 'Artist followed successfully', follow_artist });
         } catch (error) {
             console.error("Error following artist:", error);
