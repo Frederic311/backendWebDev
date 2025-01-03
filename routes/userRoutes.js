@@ -191,27 +191,15 @@ module.exports = (db) => {
             // Add the rating to the ratings collection for aggregation
             await db.collection('ratings').add({ artist_id: artistId, rating: rating });
 
-            // Calculate the new average rating for the artist
-            const artistRatingsSnapshot = await db.collection('ratings').where('artist_id', '==', artistId).get();
-            let totalRating = 0;
-            let ratingCount = artistRatingsSnapshot.size;
+            // Recalculate the average rating for the artist
+            await recalculateAverageRatingForArtist(artistId);
 
-            artistRatingsSnapshot.forEach(doc => {
-                totalRating += doc.data().rating;
-            });
-
-            const averageRating = (ratingCount === 0) ? 0 : totalRating / ratingCount;
-
-            // Update the artist's rating field
-            await db.collection('artists').doc(artistId).update({ rating: averageRating });
-
-            res.send({ message: 'Artist rated successfully', averageRating });
+            res.send({ message: 'Artist rated successfully' });
         } catch (error) {
             console.error("Error rating artist:", error);
             res.status(500).send({ message: 'Failed to rate artist', error });
         }
     });
-
 
     // Protect routes with verifyToken middleware
     router.get('/profile', verifyToken, async (req, res) => {
