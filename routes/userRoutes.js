@@ -42,12 +42,17 @@ module.exports = (db) => {
         try {
             const userRecord = await admin.auth().getUserByEmail(email);
             const idToken = await admin.auth().createCustomToken(userRecord.uid); // Use createCustomToken to get a token
-            res.send({ message: 'User logged in successfully', idToken });
+            res.send({
+                message: 'User logged in successfully',
+                idToken,
+                userId: userRecord.uid // Return the userId of the logged-in user
+            });
         } catch (error) {
             console.error("Error logging in user:", error);
             res.status(500).send({ message: 'Failed to log in user', error });
         }
     });
+
 
     // Get all users without authentication
     router.get('/all', async (req, res) => {
