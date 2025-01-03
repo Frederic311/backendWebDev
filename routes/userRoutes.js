@@ -134,9 +134,11 @@ module.exports = (db) => {
             // Add the rating to the ratings collection for aggregation
             await db.collection('ratings').add({ artist_id: artistId, rating: rating });
 
+            updateAllArtistsAverageRatings();
+
             res.send({ message: 'Artist rated successfully' });
 
-            updateAllArtistsAverageRatings();
+
 
         } catch (error) {
             console.error("Error rating artist:", error);
