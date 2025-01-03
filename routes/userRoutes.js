@@ -103,6 +103,10 @@ module.exports = (db) => {
         const { userId, rating } = req.body;
 
         try {
+            if (!userId) {
+                return res.status(400).send({ message: 'User ID is required' });
+            }
+
             const userDoc = await db.collection('users').doc(userId).get();
             if (!userDoc.exists) {
                 return res.status(404).send({ message: 'User not found' });
@@ -122,16 +126,23 @@ module.exports = (db) => {
                 return res.status(400).send({ message: 'User cannot rate the same artist twice.' });
             }
 
+            // Update the user's ratings
             ratings[artistId] = rating;
             await db.collection('users').doc(userId).update({ ratings });
 
+            // Add the rating to the ratings collection for aggregation
+            await db.collection('ratings').add({ artist_id: artistId, rating: rating });
+
             // Calculate the average rating for the artist
-            const artistRatingsSnapshot = await db.collection('ratings').where('artist_id', '==', parseInt(artistId)).get();
+            const artistRatingsSnapshot = await db.collection('ratings').where('artist_id', '==', artistId).get();
             let totalRating = 0;
+            let ratingCount = artistRatingsSnapshot.size;
+
             artistRatingsSnapshot.forEach(doc => {
                 totalRating += doc.data().rating;
             });
-            const averageRating = totalRating / artistRatingsSnapshot.size;
+
+            const averageRating = (ratingCount === 0) ? 0 : totalRating / ratingCount;
 
             await db.collection('artists').doc(artistId).update({ averageRating });
 
@@ -141,6 +152,7 @@ module.exports = (db) => {
             res.status(500).send({ message: 'Failed to rate artist', error });
         }
     });
+
 
 
     // Protect routes with verifyToken middleware
