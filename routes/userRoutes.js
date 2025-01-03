@@ -105,17 +105,13 @@ module.exports = (db) => {
                 return res.status(400).send({ message: 'User ID is required' });
             }
 
-            console.log(`Fetching user with ID: ${userId}`);
             const userDoc = await db.collection('users').doc(userId).get();
             if (!userDoc.exists) {
-                console.log(`User with ID: ${userId} not found`);
                 return res.status(404).send({ message: 'User not found' });
             }
 
-            console.log(`Fetching artist with ID: ${artistId}`);
             const artistDoc = await db.collection('artists').doc(artistId).get();
             if (!artistDoc.exists) {
-                console.log(`Artist with ID: ${artistId} not found in 'artists' collection`);
                 return res.status(404).send({ message: 'Artist not found' });
             }
 
@@ -128,13 +124,23 @@ module.exports = (db) => {
                 return res.status(400).send({ message: 'User cannot rate the same artist twice.' });
             }
 
+            // Update the user's ratings
+            ratings[artistId] = rating;
+            await db.collection('users').doc(userId).update({ ratings });
+
+            // Add the rating to the ratings collection for aggregation
+            await db.collection('ratings').add({ artist_id: artistId, rating: rating });
+
             res.send({ message: 'Artist rated successfully' });
+
             updateAllArtistsAverageRatings();
+
         } catch (error) {
             console.error("Error rating artist:", error);
             res.status(500).send({ message: 'Failed to rate artist', error });
         }
     });
+
 
     // Protect routes with verifyToken middleware
     router.get('/profile', verifyToken, async (req, res) => {
