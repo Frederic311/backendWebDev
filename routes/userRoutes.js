@@ -62,11 +62,15 @@ module.exports = (db) => {
     });
 
     // Follow an artist by ID
-    router.post('/follow/:artistId', verifyToken, async (req, res) => {
-        const userId = req.user.uid;
-        const artistId = req.params.artistId;
+    router.post('/follow/:artistId', async (req, res) => {
+        const { artistId } = req.params;
+        const { userId } = req.body;
 
         try {
+            if (!userId) {
+                return res.status(400).send({ message: 'User ID is required' });
+            }
+
             const userDoc = await db.collection('users').doc(userId).get();
             if (!userDoc.exists) {
                 return res.status(404).send({ message: 'User not found' });
@@ -87,11 +91,11 @@ module.exports = (db) => {
         }
     });
 
+
     // Rate an artist by ID
-    router.post('/rate/:artistId', verifyToken, async (req, res) => {
-        const userId = req.user.uid;
-        const artistId = req.params.artistId;
-        const { rating } = req.body;
+    router.post('/rate/:artistId', async (req, res) => {
+        const { artistId } = req.params;
+        const { userId, rating } = req.body;
 
         try {
             const userDoc = await db.collection('users').doc(userId).get();
@@ -132,6 +136,7 @@ module.exports = (db) => {
             res.status(500).send({ message: 'Failed to rate artist', error });
         }
     });
+
 
     // Protect routes with verifyToken middleware
     router.get('/profile', verifyToken, async (req, res) => {
