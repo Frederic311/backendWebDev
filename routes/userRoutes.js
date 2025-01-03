@@ -128,19 +128,8 @@ module.exports = (db) => {
                 return res.status(400).send({ message: 'User cannot rate the same artist twice.' });
             }
 
-            // Update the user's ratings
-            ratings[artistId] = rating;
-            await db.collection('users').doc(userId).update({ ratings });
-
-            // Add the rating to the ratings collection for aggregation
-            await db.collection('ratings').add({ artist_id: artistId, rating: rating });
-
-            // Recalculate the average rating for the artist by calling the update-average-rating endpoint
-            await fetch(`http://localhost:3000/api/users/update-average-rating/${artistId}`, {
-                method: 'PUT',
-            });
-
             res.send({ message: 'Artist rated successfully' });
+            updateAllArtistsAverageRatings();
         } catch (error) {
             console.error("Error rating artist:", error);
             res.status(500).send({ message: 'Failed to rate artist', error });
