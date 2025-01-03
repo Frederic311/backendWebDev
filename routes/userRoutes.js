@@ -133,25 +133,16 @@ module.exports = (db) => {
             // Add the rating to the ratings collection for aggregation
             await db.collection('ratings').add({ artist_id: artistId, rating: rating });
 
-            // Calculate the average rating for the artist
-            const artistRatingsSnapshot = await db.collection('ratings').where('artist_id', '==', artistId).get();
-            let totalRating = 0;
-            let ratingCount = artistRatingsSnapshot.size;
+            // Recalculate the average rating for the artist
+            await recalculateAverageRatingForArtist(artistId);
 
-            artistRatingsSnapshot.forEach(doc => {
-                totalRating += doc.data().rating;
-            });
-
-            const averageRating = (ratingCount === 0) ? 0 : totalRating / ratingCount;
-
-            await db.collection('artists').doc(artistId).update({ averageRating });
-
-            res.send({ message: 'Artist rated successfully', averageRating });
+            res.send({ message: 'Artist rated successfully' });
         } catch (error) {
             console.error("Error rating artist:", error);
             res.status(500).send({ message: 'Failed to rate artist', error });
         }
     });
+
 
 
 
@@ -171,3 +162,49 @@ module.exports = (db) => {
 
     return router;
 };
+    const recalculateAverageRatingsForAllArtists = async () => {
+        try {
+            const artistsSnapshot = await db.collection('artists').get();
+            artistsSnapshot.forEach(async artistDoc => {
+                const artistId = artistDoc.id;
+
+                const artistRatingsSnapshot = await db.collection('ratings').where('artist_id', '==', artistId).get();
+                let totalRating = 0;
+                let ratingCount = artistRatingsSnapshot.size;
+
+                artistRatingsSnapshot.forEach(doc => {
+                    totalRating += doc.data().rating;
+                });
+
+                const averageRating = (ratingCount === 0) ? 0 : totalRating / ratingCount;
+
+                await db.collection('artists').doc(artistId).update({ averageRating, ratingCount });
+                console.log(`Updated artist ${artistId} with average rating ${averageRating}`);
+            });
+            console.log("Recalculated average ratings for all artists.");
+        } catch (error) {
+            console.error("Error recalculating average ratings:", error);
+        }
+    };
+// Call this function once to update all artist ratings
+recalculateAverageRatingsForAllArtists();
+
+const recalculateAverageRatingForArtist = async (artistId) => {
+    try {
+        const artistRatingsSnapshot = await db.collection('ratings').where('artist_id', '==', artistId).get();
+        let totalRating = 0;
+        let ratingCount = artistRatingsSnapshot.size;
+
+        artistRatingsSnapshot.forEach(doc => {
+            totalRating += doc.data().rating;
+        });
+
+        const averageRating = (ratingCount === 0) ? 0 : totalRating / ratingCount;
+
+        await db.collection('artists').doc(artistId).update({ averageRating, ratingCount });
+        console.log(`Updated artist ${artistId} with average rating ${averageRating}`);
+    } catch (error) {
+        console.error("Error recalculating average rating for artist:", error);
+    }
+};
+
