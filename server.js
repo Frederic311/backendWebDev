@@ -37,9 +37,28 @@ app.use('/api/artists', artistRoutes);
 const userRoutes = require('./routes/userRoutes')(db); // Pass db to the route
 app.use('/api/users', userRoutes);
 
+// Real-time listener endpoint
+app.get('/stream-artists', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const artistsRef = db.collection('artists');
+  artistsRef.onSnapshot(snapshot => {
+    snapshot.docChanges().forEach(change => {
+      if (change.type === 'added' || change.type === 'modified') {
+        res.write(`data: ${JSON.stringify(change.doc.data())}\n\n`);
+      }
+    });
+  });
+
+  req.on('close', () => {
+    console.log('Connection closed');
+  });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
-
-
