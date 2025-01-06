@@ -271,6 +271,44 @@ const updateAllArtistsAverageRatings = async () => {
 // Call this function when your backend loads
 updateAllArtistsAverageRatings();
 
+// Search for artists by artistName or stageName
+router.get('/search', async (req, res) => {
+    const { query } = req.query;
+
+    if (!query) {
+        console.log('No query parameter provided');
+        return res.status(400).send({ message: 'Query parameter is required' });
+    }
+
+    try {
+        console.log(`Searching for artists with query: ${query}`);
+        const artistsRef = db.collection('artists');
+        const artistNameSnapshot = await artistsRef.where('artistName', '>=', query).where('artistName', '<=', query + '\uf8ff').get();
+        const stageNameSnapshot = await artistsRef.where('stageName', '>=', query).where('stageName', '<=', query + '\uf8ff').get();
+
+        let artists = [];
+
+        artistNameSnapshot.forEach(doc => {
+            console.log(`Found artist by name: ${doc.id}`);
+            artists.push({ id: doc.id, ...doc.data() });
+        });
+
+        stageNameSnapshot.forEach(doc => {
+            if (!artists.some(artist => artist.id === doc.id)) {
+                console.log(`Found artist by stage name: ${doc.id}`);
+                artists.push({ id: doc.id, ...doc.data() });
+            }
+        });
+
+        res.send(artists);
+    } catch (error) {
+        console.error("Error searching artists:", error);
+        res.status(500).send({ message: 'Failed to search artists', error });
+    }
+});
+
+
+
     return router;
 
 
