@@ -281,22 +281,30 @@ router.get('/search', async (req, res) => {
     }
 
     try {
-        console.log(`Searching for artists with query: ${query}`);
+        const lowerCaseQuery = query.toLowerCase();
+        console.log(`Searching for artists with query: ${lowerCaseQuery}`);
+
         const artistsRef = db.collection('artists');
-        const artistNameSnapshot = await artistsRef.where('artistName', '>=', query).where('artistName', '<=', query + '\uf8ff').get();
-        const stageNameSnapshot = await artistsRef.where('stageName', '>=', query).where('stageName', '<=', query + '\uf8ff').get();
+        const artistNameSnapshot = await artistsRef.get();
+        const stageNameSnapshot = await artistsRef.get();
 
         let artists = [];
 
         artistNameSnapshot.forEach(doc => {
-            console.log(`Found artist by name: ${doc.id}`);
-            artists.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            const lowerCaseArtistName = data.artistName.toLowerCase();
+            if (lowerCaseArtistName.includes(lowerCaseQuery)) {
+                console.log(`Found artist by name: ${doc.id}`);
+                artists.push({ id: doc.id, ...data });
+            }
         });
 
         stageNameSnapshot.forEach(doc => {
-            if (!artists.some(artist => artist.id === doc.id)) {
+            const data = doc.data();
+            const lowerCaseStageName = data.stageName.toLowerCase();
+            if (!artists.some(artist => artist.id === doc.id) && lowerCaseStageName.includes(lowerCaseQuery)) {
                 console.log(`Found artist by stage name: ${doc.id}`);
-                artists.push({ id: doc.id, ...doc.data() });
+                artists.push({ id: doc.id, ...data });
             }
         });
 
@@ -306,6 +314,7 @@ router.get('/search', async (req, res) => {
         res.status(500).send({ message: 'Failed to search artists', error });
     }
 });
+
 
 
 
